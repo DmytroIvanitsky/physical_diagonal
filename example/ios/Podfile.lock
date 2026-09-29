@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - physical_diagonal (2.0.0):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - physical_diagonal (from `.symlinks/plugins/physical_diagonal/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  physical_diagonal:
+    :path: ".symlinks/plugins/physical_diagonal/ios"
+
+SPEC CHECKSUMS:
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  physical_diagonal: 6e22a520eda6906c604e3246abf7daaed5cb5b05
+
+PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+
+COCOAPODS: 1.16.2

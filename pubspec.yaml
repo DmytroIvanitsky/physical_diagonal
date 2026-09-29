@@ -1,0 +1,27 @@
+name: physical_diagonal
+description: Device and current-window physical screen diagonal (inches), with a configurable tablet-layout threshold.
+version: 2.0.0
+homepage: https://github.com/DmytroIvanitsky/physical_diagonal
+repository: https://github.com/DmytroIvanitsky/physical_diagonal
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: dev.ivanitsky.physical_diagonal
+        pluginClass: PhysicalDiagonalPlugin
+      ios:
+        pluginClass: PhysicalDiagonalPlugin
