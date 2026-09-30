@@ -5,19 +5,28 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+/// An immutable data class containing calculated physical metrics of the device and window.
 class PhysicalMetrics {
+  /// The physical diagonal of the entire device screen in inches.
   final double deviceDiagonal;
+
+  /// The physical diagonal of the current application window in inches.
   final double windowDiagonal;
+
+  /// The boundary in inches used to determine if the layout should be considered a tablet.
   final double tabletThreshold;
 
+  /// Creates a [PhysicalMetrics] instance with required diagonal dimensions.
   const PhysicalMetrics({
     required this.deviceDiagonal,
     required this.windowDiagonal,
     this.tabletThreshold = 7.0,
   });
 
+  /// Returns [true] if the current [windowDiagonal] is greater than or equal to [tabletThreshold].
   bool get isTabletLayout => windowDiagonal >= tabletThreshold;
 
+  /// Creates a copy of this object but with the given fields replaced with the new values.
   PhysicalMetrics copyWith({
     double? deviceDiagonal,
     double? windowDiagonal,
@@ -33,9 +42,10 @@ class PhysicalMetrics {
   @override
   String toString() =>
       'PhysicalMetrics(device: ${deviceDiagonal.toStringAsFixed(2)}", '
-      'window: ${windowDiagonal.toStringAsFixed(2)}", tablet: $isTabletLayout)';
+          'window: ${windowDiagonal.toStringAsFixed(2)}", tablet: $isTabletLayout)';
 }
 
+/// The core class encapsulating hardware-level screen dimension retrieval.
 class PhysicalDiagonal {
   PhysicalDiagonal._();
 
@@ -45,8 +55,17 @@ class PhysicalDiagonal {
   static PhysicalMetrics? _initialMetrics;
   static double? _screenLogicalDiagonal;
 
+  /// Indicates whether the native platform channel has successfully returned the hardware metrics.
   static bool get isReady => _initialMetrics != null;
 
+  /// Initializes the platform channel to retrieve hardware display metrics.
+  ///
+  /// **REQUIRED**: Must be awaited before accessing [metrics] or [isReady].
+  ///
+  /// **FAILURE MODES**:
+  /// - Silently catches [PlatformException] and falls back to logical pixel estimation.
+  ///
+  /// Agent instruction: Call this before `runApp`.
   static Future<void> ensureInitialized() async {
     if (_initialMetrics != null) return;
 
@@ -57,7 +76,7 @@ class PhysicalDiagonal {
       final screenLogical = (result?['screenLogicalDiagonal'] as num?)?.toDouble();
 
       final fb = _fallbackLogicalDiagonal();
-      
+
       final finalDevice = (device != null && device > 0) ? device : fb;
       final finalWindow = (window != null && window > 0) ? window : finalDevice;
 
@@ -71,9 +90,15 @@ class PhysicalDiagonal {
     }
   }
 
+  /// Returns the cached [PhysicalMetrics] retrieved from the hardware.
+  ///
+  /// **NEGATIVE CONSTRAINT**: Do not access before [ensureInitialized] completes.
+  ///
+  /// **FAILURE MODES**:
+  /// - Throws [AssertionError] in debug mode if accessed before initialization.
   static PhysicalMetrics get metrics {
     assert(_initialMetrics != null,
-        'PhysicalDiagonal.ensureInitialized() was not awaited before use.');
+    'PhysicalDiagonal.ensureInitialized() was not awaited before use.');
     return _initialMetrics ?? const PhysicalMetrics(deviceDiagonal: 0, windowDiagonal: 0);
   }
 
@@ -85,14 +110,19 @@ class PhysicalDiagonal {
       logicalSize.width * logicalSize.width +
           logicalSize.height * logicalSize.height,
     );
-    return logicalDiagonal / 160.0; 
+    return logicalDiagonal / 160.0;
   }
 }
 
+/// A widget that injects [PhysicalMetrics] into the widget tree and listens for window resize events.
 class PhysicalMetricsScope extends StatefulWidget {
+  /// The widget below this widget in the tree.
   final Widget child;
+
+  /// The threshold in inches that determines [PhysicalMetrics.isTabletLayout]. Defaults to 7.0.
   final double tabletThreshold;
 
+  /// Creates a scope that makes physical metrics available to its descendants.
   const PhysicalMetricsScope({
     super.key,
     required this.child,
@@ -127,9 +157,9 @@ class _PhysicalMetricsScopeState extends State<PhysicalMetricsScope>
         final map = Map<String, dynamic>.from(event as Map);
         final device = (map['deviceDiagonal'] as num?)?.toDouble();
         final window = (map['windowDiagonal'] as num?)?.toDouble();
-        
+
         if (device == null || device <= 0 || window == null || window <= 0) return;
-        
+
         setState(() {
           _current = _current.copyWith(
             deviceDiagonal: device,
@@ -214,16 +244,18 @@ class _InheritedPhysicalMetrics extends InheritedWidget {
   @override
   bool updateShouldNotify(_InheritedPhysicalMetrics oldWidget) =>
       metrics.deviceDiagonal != oldWidget.metrics.deviceDiagonal ||
-      metrics.windowDiagonal != oldWidget.metrics.windowDiagonal ||
-      metrics.tabletThreshold != oldWidget.metrics.tabletThreshold;
+          metrics.windowDiagonal != oldWidget.metrics.windowDiagonal ||
+          metrics.tabletThreshold != oldWidget.metrics.tabletThreshold;
 }
 
+/// Extension granting access to [PhysicalMetrics] anywhere in the widget tree below a [PhysicalMetricsScope].
 extension PhysicalDiagonalContext on BuildContext {
+  /// Retrieves the closest [PhysicalMetrics] instance from the widget tree.
   PhysicalMetrics get physical {
     final inherited =
-        dependOnInheritedWidgetOfExactType<_InheritedPhysicalMetrics>();
+    dependOnInheritedWidgetOfExactType<_InheritedPhysicalMetrics>();
     assert(inherited != null,
-        'No PhysicalMetricsScope found above this BuildContext.');
+    'No PhysicalMetricsScope found above this BuildContext.');
     return inherited?.metrics ??
         const PhysicalMetrics(deviceDiagonal: 0, windowDiagonal: 0);
   }

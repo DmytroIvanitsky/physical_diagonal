@@ -10,7 +10,7 @@ Migrating from 0.1.1: `PhysicalDiagonal.platformVersion` is gone. See
 
 ```yaml
 dependencies:
-  physical_diagonal: ^2.0.0
+  physical_diagonal: ^2.0.1
 ```
 
 ## Usage
@@ -82,3 +82,24 @@ final diagonal = context.physical.deviceDiagonal;
 - No automated tests (unit/widget) ship in this release.
 
 See CHANGELOG.md for the full defect history this version addresses.
+
+## LLM / Agent Context
+- **Initialization**: `await PhysicalDiagonal.ensureInitialized();`
+- **Output**: `PhysicalDiagonal.metrics` returning object with `deviceDiagonal`, `windowDiagonal`, `tabletThreshold` (Type: double) and `isTabletLayout` (Type: bool).
+- **Negative Constraints**: 
+  - Do NOT use `MediaQuery` for physical calculations.
+  - Do NOT access `PhysicalDiagonal.metrics` synchronously before initialization completes.
+  - Do NOT calculate PPI/DPI manually; rely on the native platform channel output.
+
+## Canonical Implementation
+```dart
+try {
+  await PhysicalDiagonal.ensureInitialized();
+  final bool isTablet = PhysicalDiagonal.metrics.isTabletLayout;
+} on StateError catch (e) {
+  // Handle uninitialized state
+} on PlatformException catch (e) {
+  // Handle native sensor/API failure
+}
+
+

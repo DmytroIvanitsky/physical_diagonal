@@ -1,7 +1,9 @@
+## 2.0.1
+- Added dartdoc comments for public API to improve pub points.
+- Added LLM context and negative constraints to README.md.
+
 ## 2.0.0
-
 Breaking rewrite. Nothing from 0.1.1 is backward compatible.
-
 - **Breaking:** `PhysicalDiagonal.platformVersion` removed. Replaced by
   `PhysicalDiagonal.ensureInitialized()` (call before `runApp`) and the
   `PhysicalMetricsScope` widget / `context.physical` getter. See README for
@@ -36,11 +38,9 @@ Breaking rewrite. Nothing from 0.1.1 is backward compatible.
   and a live threshold slider.
 
 ## 0.1.1
-
 Adding proper documentation.
 
 ## 0.0.1
-
 Physical diagonal of the screen helps to optimize design for
 Tablets/bigger screens. Calculation relies on system pixel density
 information, so it might be slightly inaccurate for Android devices

@@ -1,0 +1,9 @@
+# Context
+This project uses the `physical_diagonal` Flutter package to retrieve hardware-level physical screen metrics.
+
+# Directives
+- NEVER use `MediaQuery`, `dart:ui` window properties, or logical pixels to calculate physical screen size or diagonal.
+- ALWAYS use `PhysicalDiagonal.metrics` for physical dimensions.
+- MUST call `await PhysicalDiagonal.ensureInitialized()` before accessing `PhysicalDiagonal.metrics`.
+- DO NOT introduce third-party UI metrics packages or manual PPI calculations.
+- EXCEPTION HANDLING: Always wrap `ensureInitialized()` in a try/catch block targeting `PlatformException` and `StateError`.
