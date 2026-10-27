@@ -193,6 +193,37 @@ class _PhysicalMetricsScopeState extends State<PhysicalMetricsScope>
   @override
   void didChangeMetrics() {
     if (!Platform.isIOS) return;
+    _refreshiOSMetrics();
+  }
+
+  Future<void> _refreshiOSMetrics() async {
+    try {
+      final result = await PhysicalDiagonal._channel.invokeMapMethod<String, dynamic>('getMetrics');
+      final device = (result?['deviceDiagonal'] as num?)?.toDouble();
+      final window = (result?['windowDiagonal'] as num?)?.toDouble();
+      final screenLogical = (result?['screenLogicalDiagonal'] as num?)?.toDouble();
+
+      if (screenLogical != null && screenLogical > 0) {
+        PhysicalDiagonal._screenLogicalDiagonal = screenLogical;
+      }
+
+      if (device != null && device > 0 && window != null && window > 0) {
+        final deviceChanged = (_current.deviceDiagonal - device).abs() >= 0.01;
+        final windowChanged = (_current.windowDiagonal - window).abs() >= 0.01;
+        if ((deviceChanged || windowChanged) && mounted) {
+          setState(() {
+            _current = _current.copyWith(
+              deviceDiagonal: device,
+              windowDiagonal: window,
+            );
+          });
+        }
+        return;
+      }
+    } catch (_) {
+      // Fallback to local logical ratio calculation
+    }
+
     final screenLogical = PhysicalDiagonal._screenLogicalDiagonal;
     if (screenLogical != null && screenLogical > 0) {
       _applyiOSResize(screenLogical);
