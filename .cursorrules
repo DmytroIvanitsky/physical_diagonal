@@ -3,7 +3,11 @@ This project uses the `physical_diagonal` Flutter package to retrieve hardware-l
 
 # Directives
 - NEVER use `MediaQuery`, `dart:ui` window properties, or logical pixels to calculate physical screen size or diagonal.
-- ALWAYS use `PhysicalDiagonal.metrics` for physical dimensions.
-- MUST call `await PhysicalDiagonal.ensureInitialized()` before accessing `PhysicalDiagonal.metrics`.
-- DO NOT introduce third-party UI metrics packages or manual PPI calculations.
-- EXCEPTION HANDLING: Always wrap `ensureInitialized()` in a try/catch block targeting `PlatformException` and `StateError`.
+- NEVER calculate PPI/DPI manually and DO NOT introduce third-party UI metrics packages.
+- INITIALIZATION: call `await PhysicalDiagonal.ensureInitialized()` in `main()` after `WidgetsFlutterBinding.ensureInitialized()` and before `runApp`. It never throws (on platform-channel failure it falls back to a logical-pixel estimate), so do NOT wrap it in try/catch.
+- Wrap the app in `PhysicalMetricsScope(tabletThreshold: ...)`, above `MaterialApp`.
+- ALWAYS read metrics inside widgets via `context.physical` (`deviceDiagonal`, `windowDiagonal`, `isTabletLayout`). It is live: it updates on window resize, rotation and folding (Split View, Stage Manager, Android foldables, iPhone Duo).
+- Use `isTabletLayout` (based on `windowDiagonal`) to switch layouts. Use `deviceDiagonal` only for the hardware screen size.
+- `PhysicalDiagonal.metrics` is a startup snapshot: same type, default `tabletThreshold` of 7.0, never updates. Use it only outside the widget tree.
+- DO NOT cache `deviceDiagonal` / `windowDiagonal` in long-lived state; the values change at runtime.
+- Accessing `PhysicalDiagonal.metrics` before initialization, or `context.physical` outside a `PhysicalMetricsScope`, throws `AssertionError` in debug and returns zero values in release. Guard against `deviceDiagonal == 0` if it matters.

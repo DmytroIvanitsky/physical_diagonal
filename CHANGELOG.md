@@ -1,3 +1,7 @@
+## 2.0.3
+
+- Docs: README updated — supported iOS device table (iPhone 17/18 families, iPhone Duo, latest iPads), iPhone Duo display selection, iOS Simulator behavior.
+
 ## 2.0.2
 
 - Add: Support for the latest iPhone and iPad models (including foldable dual-display configurations).

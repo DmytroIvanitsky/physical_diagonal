@@ -28,7 +28,7 @@ See CHANGELOG.md for the full history.
 
 ```yaml
 dependencies:
-  physical_diagonal: ^2.0.2
+  physical_diagonal: ^2.0.3
 ```
 
 ## Usage
@@ -156,22 +156,37 @@ See CHANGELOG.md for the full defect history this version addresses.
 
 ## LLM / Agent Context
 
-- **Initialization**: `await PhysicalDiagonal.ensureInitialized();`
-- **Output**: `PhysicalDiagonal.metrics` returning object with `deviceDiagonal`, `windowDiagonal`, `tabletThreshold` (Type: double) and `isTabletLayout` (Type: bool).
+- **Initialization**: `await PhysicalDiagonal.ensureInitialized();` before `runApp`. It never throws; on platform-channel failure it falls back to a logical-pixel estimate. No try/catch needed.
+- **Live metrics (use this in widgets)**: wrap the app in `PhysicalMetricsScope(tabletThreshold: ...)` and read `context.physical`. It returns `PhysicalMetrics` with `deviceDiagonal`, `windowDiagonal`, `tabletThreshold` (Type: double) and `isTabletLayout` (Type: bool). It updates on window resize, rotation and folding.
+- **Static snapshot**: `PhysicalDiagonal.metrics` returns the same type with startup values and the default `tabletThreshold` of 7.0. It never updates. Use it only outside the widget tree.
+- **Failure modes**: accessing `PhysicalDiagonal.metrics` before initialization, or `context.physical` outside a `PhysicalMetricsScope`, throws `AssertionError` in debug and returns zero values in release.
 - **Negative Constraints**:
   - Do NOT use `MediaQuery` for physical calculations.
-  - Do NOT access `PhysicalDiagonal.metrics` synchronously before initialization completes.
+  - Do NOT access `PhysicalDiagonal.metrics` before `ensureInitialized()` completes.
   - Do NOT calculate PPI/DPI manually; rely on the native platform channel output.
+  - Do NOT cache `deviceDiagonal` / `windowDiagonal` in long-lived state; they change at runtime.
 
 ## Canonical Implementation
 
 ```dart
-try {
-  await PhysicalDiagonal.ensureInitialized();
-  final bool isTablet = PhysicalDiagonal.metrics.isTabletLayout;
-} on StateError catch (e) {
-  // Handle uninitialized state
-} on PlatformException catch (e) {
-  // Handle native sensor/API failure
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await PhysicalDiagonal.ensureInitialized(); // never throws
+  runApp(
+    const PhysicalMetricsScope(
+      tabletThreshold: 7.0,
+      child: MyApp(),
+    ),
+  );
 }
+
+// In any widget below the scope (live, rebuilds on resize/fold):
+@override
+Widget build(BuildContext context) {
+  final physical = context.physical;
+  return physical.isTabletLayout ? const TabletLayout() : const PhoneLayout();
+}
+
+// Outside the widget tree (startup snapshot, default threshold 7.0):
+final bool isTablet = PhysicalDiagonal.metrics.isTabletLayout;
 ```

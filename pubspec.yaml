@@ -1,6 +1,6 @@
 name: physical_diagonal
 description: Device and current-window physical screen diagonal (inches), with a configurable tablet-layout threshold.
-version: 2.0.2
+version: 2.0.3
 homepage: https://github.com/DmytroIvanitsky/physical_diagonal
 repository: https://github.com/DmytroIvanitsky/physical_diagonal
 
